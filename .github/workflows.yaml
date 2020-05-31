@@ -1,0 +1,45 @@
+on: [push, pull_request]
+name: Test
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14.1
+
+      - name: Check out code
+        uses: actions/checkout@master
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Lint Go Code
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin # temporary fix. See https://github.com/actions/setup-go/issues/14
+          go get -u golang.org/x/lint/golint 
+          golint ./...
+          
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14.1
+
+      - name: Check out code
+        uses: actions/checkout@master
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Run Unit tests.
+        run: go test ./...
+      
+      - name: Upload Coverage report to CodeCov
+        uses: codecov/codecov-action@v1.0.0
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          file: ./coverage.txt
